@@ -47,12 +47,22 @@ main{padding:0 18px 60px}
 .ax{display:flex;flex-direction:column;gap:4px;padding:12px;border-color:hsl(var(--ah) 70% 45%/.6);box-shadow:inset 0 0 30px hsl(var(--ah) 80% 40%/.18)}
 .ax .btn{align-self:flex-start;padding:4px 12px;margin-top:4px}
 .ax.lock{opacity:.5;border-color:var(--line);box-shadow:none}
-input,select{font:inherit;background:#0d0b1c;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+input,select,textarea{font:inherit;background:#0d0b1c;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 #cut{position:fixed;inset:0;z-index:50;background:#03020c;display:none}
 #cv{position:absolute;inset:0}
 #rev{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px;animation:pop .9s cubic-bezier(.2,1.4,.4,1)}
 @keyframes pop{from{transform:scale(.3);opacity:0;filter:blur(14px)}}
 #ok{transition:opacity 1s}
+.ar{margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#wx{position:fixed;inset:-40%;z-index:-1;pointer-events:none;opacity:0;transition:opacity 2s}
+#wx.rain{opacity:1;background:repeating-linear-gradient(105deg,transparent 0 14px,hsl(205 80% 70%/.2) 14px 15px);animation:rain .4s linear infinite}
+@keyframes rain{to{background-position:-30px 60px}}
+#wx.night{opacity:1;background:radial-gradient(2px 2px at 20% 30%,#fff,transparent),radial-gradient(2px 2px at 70% 20%,#fff,transparent),radial-gradient(3px 3px at 40% 70%,#fff,transparent),radial-gradient(2px 2px at 85% 60%,#fff,transparent),radial-gradient(2px 2px at 55% 45%,#fff,transparent),rgba(5,5,40,.45);animation:tw 3s ease-in-out infinite alternate}
+@keyframes tw{to{filter:brightness(1.7)}}
+#wx.storm{opacity:1;background:rgba(10,10,30,.55);animation:fl 5s infinite}
+@keyframes fl{0%,90%,100%{background:rgba(10,10,30,.55)}92%{background:rgba(200,210,255,.5)}95%{background:rgba(10,10,30,.55)}96%{background:rgba(200,210,255,.4)}}
+#wx.eclipse{opacity:1;background:radial-gradient(circle at 50% 50%,#000 0 90px,hsl(35 100% 60%/.85) 92px 112px,transparent 300px),rgba(0,0,0,.45)}
+#wx.rift{opacity:1;background:conic-gradient(hsl(300 90% 40%/.4),transparent,hsl(260 90% 50%/.4),transparent,hsl(320 90% 50%/.4),transparent);animation:spin 10s linear infinite}
 #rev.r1{animation-name:rise}#rev.r2{animation-name:spin}#rev.r3{animation-name:drop}
 @keyframes rise{from{transform:translateY(90px) scale(.7);opacity:0;filter:blur(10px)}}@keyframes spin{from{transform:rotate(-25deg) scale(.2);opacity:0}}@keyframes drop{from{transform:translateY(-140px) scale(1.7);opacity:0}}
 #rn{font:800 clamp(2.4rem,10vw,6rem) Unbounded,sans-serif;text-shadow:0 0 40px currentColor;line-height:1.1}
@@ -65,8 +75,8 @@ input,select{font:inherit;background:#0d0b1c;color:var(--ink);border:1px solid v
 </style>
 </head>
 <body>
-<div id="bg"></div>
-<header><h1>RiftRoll</h1><div id="sh" class="pill"></div></header>
+<div id="bg"></div><div id="wx"></div>
+<header><h1>RiftRoll</h1><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><div id="wp" class="pill"></div><div id="sh" class="pill"></div></div></header>
 <nav id="tabs"></nav>
 <main>
 <section id="p-roll" class="panel on">
@@ -79,9 +89,18 @@ input,select{font:inherit;background:#0d0b1c;color:var(--ink);border:1px solid v
 <section id="p-up" class="panel"><div class="grid" id="ug"></div><h3 style="margin:22px 0 4px">Quests</h3><p class="mute" style="margin-bottom:10px">Quests spend your auras. The Index keeps them, but their count goes down.</p><div class="grid" id="uq"></div></section>
 <section id="p-pot" class="panel"><p class="mute" style="margin-bottom:10px">Potions can't be bought. Craft them by spending auras.</p><div class="grid" id="pg"></div></section>
 <section id="p-idx" class="panel"><p class="mute" id="ic" style="margin-bottom:12px"></p><div class="grid" id="ix" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr))"></div></section>
+<section id="p-adm" class="panel"><div class="card"><h3>Admin</h3><p class="mute" id="af"></p>
+ <div class="ar">Luck ×<input id="al1" value="100" style="width:110px"> for <input id="al2" type="number" value="5" style="width:70px"> min <button class="btn" id="ab1">Start</button></div>
+ <div class="ar">Variant chance ×<input id="av1" value="100" style="width:110px"> for <input id="av2" type="number" value="5" style="width:70px"> min <button class="btn" id="ab2">Start</button></div>
+ <div class="ar">Weather <select id="aw"></select> for <input id="aw2" type="number" value="10" style="width:70px"> min <button class="btn" id="ab3">Force</button></div>
+ <div class="ar">Shards <input id="as1" value="1e9" style="width:140px"> <button class="btn" id="ab4">Give</button></div>
+ <div class="ar">Potion <select id="ap"></select> ×<input id="ap2" type="number" value="1" style="width:70px"> <button class="btn" id="ab5">Give</button></div>
+ <div class="ar">Aura <select id="aa"></select> ×<input id="aa2" type="number" value="1" style="width:70px"> <button class="btn" id="ab6">Give</button></div>
+ <div class="ar"><button class="btn alt" id="ab7">Clear effects</button> <button class="btn alt" id="ab8">Lock admin</button></div>
+ <p class="mute" style="margin-top:10px;font-size:.85rem">Admin changes only affect this browser. Weather is the same for everyone because it comes from the real clock, but forcing it here is just for you.</p></div></section>
 <section id="p-code" class="panel">
  <div class="card"><h3>Redeem a code</h3><p class="mute">Enter a code to claim its reward.</p><p style="margin-top:10px"><input id="ci" placeholder="Code" autocomplete="off"> <button class="btn" id="cb">Redeem</button></p><p id="cm" style="margin-top:8px"></p></div>
- <div class="card" style="margin-top:12px"><h3>Settings</h3><p><label class="mute"><input type="checkbox" id="sn"> Sound effects</label></p><p class="mute" style="margin-top:10px">Play a cutscene for auras rarer than:</p><p style="margin-top:8px"><select id="cs"></select></p><p style="margin-top:14px"><button class="btn alt" id="rs0">Reset all progress</button></p></div>
+ <div class="card" style="margin-top:12px"><h3>Settings</h3><p><label class="mute"><input type="checkbox" id="sn"> Sound effects</label></p><p class="mute" style="margin-top:10px">Play a cutscene for auras rarer than:</p><p style="margin-top:8px"><select id="cs"></select></p><p style="margin-top:14px"><button class="btn" id="ex">Export save</button> <button class="btn alt" id="im">Import save</button></p><textarea id="sv" rows="3" placeholder="Your save code appears here. Paste a save code here to import it." style="width:100%;margin-top:8px"></textarea><p id="sm" class="mute"></p><p style="margin-top:14px"><button class="btn alt" id="rs0">Reset all progress</button></p></div>
 </section>
 </main>
 <div id="cut"><canvas id="cv"></canvas>
@@ -95,21 +114,37 @@ const N0="Plain,Dust,Pebble,Mist,Ember,Frost,Moss,Breeze,Flicker,Glow,Spark,Tide
 const N1="Static,Pollen,Cobweb,Ash,Drizzle,Clay,Reed,Lantern,Wisp,Shimmer,Candle,Brook,Dusk,Lava Drop,Chime,Rust,Willow,Honey,Granite,Pearl,Rainfall,Magma,Whisper,Beacon,Smoke,Topaz,Ruby,Fern,Borealis,Resonance,Kaleido,Cumulus,Equinox,Cyclone,Illusion,Jet,Monsoon,Sylph,Phantom,Orchid,Firebird,Iceberg,Umbra,Bramble,Meteor,Siren,Azure,Volcano,Ghoul,Apex,Galaxy,Kraken,Griffon,Sentinel,Magma Heart,Typhoon,Empyrean,Wyvern,Chasm,Archangel,Neutron,Phantasm,Basilisk,Blazar,Netherwalker,Colossus,Valhalla,Cosmic,Perdition,Origin,Ether,Hypernova,Calamity,Immortality,Enigma,Tesseract,Ragnar,Kronos,Boundless,Omnipotent,Voidborn,Horizon,Juggernaut,Ancestral,Aberration,Sovereign,Doomsday,Paradise,Rift Stalker,Universe,Realmbreaker,Godhood,Moksha,Avalon,Creation,Zeta,Omega Prime,The Void,Eternal Rift,RiftCrown".split(","),N=N0.flatMap((n,i)=>[n,N1[i]]);
 const A=N.map((n,i)=>{let o=2*Math.pow(5e11,i/(N.length-1));o=o<100?Math.round(o):Number(o.toPrecision(2));return{i,n,o,h:(i*137.5)%360}});
 for(let i=1;i<A.length;i++)if(A[i].o<=A[i-1].o)A[i].o=A[i-1].o+1;
-const fmt=n=>{for(const[v,s]of[[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]])if(n>=v){const x=n/v;return(x>=100?Math.round(x):+x.toFixed(1))+s}return Math.round(n).toLocaleString()};
+const fmt=n=>{for(const[v,s]of[[1e15,"Qa"],[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]])if(n>=v){const x=n/v;return(x>=100?Math.round(x):+x.toFixed(1))+s}return Math.round(n).toLocaleString()};
 const fl=n=>n>=1e3?fmt(n):+n.toFixed(2);
 const col=(h,l=68)=>`hsl(${h} 90% ${l}%)`;
 // potions: id, name, luck multiplier, shard price
 const P=[["lucky","Lucky Draught",5,500],["fort","Fortune Vial",25,1e4],["star","Starlit Elixir",100,2.5e5],["rift","Rift Tonic",500,1e7],["void","Void Nectar",2500,5e8],["ult","Ultimate Elixir",1e4,1e10]];
 // upgrades: name, description, max level, base cost, cost growth
 const U={speed:["Quick Roll","Rolls finish 12% faster per level.",10,30,1.8],luck:["Fortune","+15% luck per level.",40,60,1.6],magnet:["Shard Magnet","+50% shards from every aura per level.",25,50,1.7],twin:["Twin Roll","8% chance per level to roll twice and keep the rarer aura.",10,150,1.7],save:["Potion Saver","10% chance per level that your potion isn't used up.",8,400,1.9],rain:["Shard Rain","Earn shards every second, even while idle (level² × 2 per second).",15,100,1.65],crit:["Shard Crit","6% chance per level to earn ×5 shards from a roll.",10,200,1.7],multi:["Multi-Roll","Roll more auras with each press: ×2, ×3, ×5. The ×10 level is a quest.",3,2000,12.5],auto:["Auto Roll","Rolls for you. One-time unlock.",1,300,1]};
-const KEY="riftroll_v4",D={shards:0,rolls:0,got:{},seen:{},q:{},up:{speed:0,luck:0,magnet:0,twin:0,save:0,rain:0,crit:0,multi:0,auto:0},pot:{},active:null,eq:0,founder:0,cut:1000,snd:1,lk:100};
+const KEY="riftroll_v5",D={shards:0,rolls:0,got:{},seen:{},q:{},vg:{},up:{speed:0,luck:0,magnet:0,twin:0,save:0,rain:0,crit:0,multi:0,auto:0},pot:{},active:null,eq:0,founder:0,cut:1000,snd:1,lk:100};
 let S;try{S=Object.assign({},D,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){S={...D}}
-S.up=Object.assign({},D.up,S.up);S.pot=S.pot||{};S.got=S.got||{};S.seen=S.seen||{};S.q=S.q||{};
+S.up=Object.assign({},D.up,S.up);S.pot=S.pot||{};S.got=S.got||{};S.seen=S.seen||{};S.q=S.q||{};S.vg=S.vg||{};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const cost=k=>Math.floor(U[k][3]*Math.pow(U[k][4],S.up[k]));
 const base=()=>(1+S.up.luck*.15)*(S.founder?2:1);
 const tot=()=>base()*(S.active?P.find(p=>p[0]==S.active)[2]:1);
 const luck=()=>Math.pow(tot(),S.lk/100);
+// variants, weather (same for everyone: picked from the real clock), admin
+const VR=[{n:"Celestial",p:1e-5,sh:10,h:190},{n:"Corrupted",p:1e-4,sh:5,h:320},{n:"Shiny",p:1e-3,sh:3,h:48}];
+const W=[{id:"clear",n:"Clear Skies",e:"☀️",lk:1,vr:1,w:50},{id:"rain",n:"Rain",e:"🌧️",lk:1.5,vr:1,w:25},{id:"night",n:"Starry Night",e:"🌙",lk:2,vr:1,w:14},{id:"storm",n:"Thunderstorm",e:"⛈️",lk:3,vr:2,w:8},{id:"eclipse",n:"Eclipse",e:"🌑",lk:10,vr:5,w:2.5},{id:"rift",n:"Rift Storm",e:"🌀",lk:50,vr:20,w:.5}];
+const SLOT=6e5,sr=n=>{let h=Math.imul(n,2654435761)>>>0;h^=h>>>15;h=Math.imul(h,2246822519)>>>0;h^=h>>>13;h=Math.imul(h,3266489917)>>>0;h^=h>>>16;return(h>>>0)/4294967296};
+let AD={lm:1,lu:0,vm:1,vu:0,wt:"",wu:0};try{Object.assign(AD,JSON.parse(localStorage.getItem("riftroll_fx")||"{}"))}catch(e){}
+const sAD=()=>{try{localStorage.setItem("riftroll_fx",JSON.stringify(AD))}catch(e){}};
+const adm=()=>{try{return localStorage.getItem("riftroll_adm")=="1"}catch(e){return false}};
+const admL=()=>Date.now()<AD.lu?AD.lm:1,admV=()=>Date.now()<AD.vu?AD.vm:1;
+const wbase=()=>{let r=sr(Math.floor(Date.now()/SLOT))*100;for(const w of W)if((r-=w.w)<0)return w;return W[0]};
+const wtr=()=>Date.now()<AD.wu?(W.find(w=>w.id==AD.wt)||W[0]):wbase();
+const hs=s=>{let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return 4294967296*(2097151&h2)+(h1>>>0)};
+function wtick(){const w=wtr(),f=Date.now()<AD.wu,left=f?AD.wu-Date.now():SLOT-Date.now()%SLOT;
+ $("wp").textContent=w.e+" "+w.n+(w.lk>1?" · ×"+w.lk+" luck":"")+(w.vr>1?" · variants ×"+w.vr:"")+" · "+Math.floor(left/6e4)+":"+String(Math.floor(left/1e3)%60).padStart(2,"0");$("wx").className=w.id;
+ const m=t=>Math.ceil((t-Date.now())/6e4),fx=[];if(admL()>1)fx.push("Luck ×"+fmt(AD.lm)+" ("+m(AD.lu)+" min)");if(admV()>1)fx.push("Variants ×"+fmt(AD.vm)+" ("+m(AD.vu)+" min)");if(f)fx.push("Weather forced ("+m(AD.wu)+" min)");
+ $("af").textContent="Active: "+(fx.join(" · ")||"nothing")}
+
 // quests: spend auras (the Index keeps them, but the count goes down; your equipped aura keeps 1 copy)
 const near=o=>A.reduce((b,x)=>Math.abs(Math.log(x.o/o))<Math.abs(Math.log(b.o/o))?x:b);
 const avail=i=>(S.got[i]||0)-(S.eq==i&&(S.got[i]||0)>0?1:0);
@@ -121,7 +156,7 @@ const UQ=[["multi10","Multi-Roll ×10","Roll 10 auras with every press.",[[3e6,1
 
 // tabs
 const T=[["roll","Roll"],["up","Upgrades"],["pot","Potions"],["idx","Index"],["code","Codes"]];
-$("tabs").innerHTML=T.map(([k,l])=>`<button data-k="${k}">${l}</button>`).join("");
+
 function tab(k){document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id=="p-"+k));document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.k==k))}
 $("tabs").onclick=e=>{if(e.target.dataset.k)tab(e.target.dataset.k)};tab("roll");
 // background follows the equipped aura
@@ -137,7 +172,7 @@ function ui(){
  $("pg").innerHTML=P.map(p=>`<div class="card"><h3>${p[1]}</h3><p class="mute">Next roll: ×${fmt(p[2])} luck</p><p>Owned: ${S.pot[p[0]]||0}${S.active==p[0]?" · active":""}</p>${rq(PQ[p[0]])}<button class="btn" data-b="${p[0]}" ${can(PQ[p[0]])?"":"disabled"}>Craft (spend auras)</button> <button class="btn alt" data-p="${p[0]}" ${(S.pot[p[0]]||0)<1?"disabled":""}>Use</button></div>`).join("");
  $("uq").innerHTML=UQ.filter(q=>S.q[q[0]]||q[4]()).map(q=>`<div class="card"><h3>${q[1]}</h3><p class="mute">${q[2]}</p>${S.q[q[0]]?"<p>✔ Completed</p>":rq(q[3])+`<button class="btn" data-q="${q[0]}" ${can(q[3])?"":"disabled"}>Complete quest</button>`}</div>`).join("")||'<p class="mute">More quests appear as you upgrade.</p>';
  $("ic").textContent=`Discovered ${Object.keys(S.seen).length} of ${A.length} auras.`;
- $("ix").innerHTML=A.map(a=>{const g=S.seen[a.i];return g?`<div class="card ax" style="--ah:${a.h}"><b style="color:${col(a.h)}">${a.n}</b><span class="mute">1 in ${fmt(a.o)} · ×${fmt(S.got[a.i]||0)}</span><button class="btn" data-e="${a.i}" ${S.eq==a.i?"disabled":""}>${S.eq==a.i?"Equipped":"Equip"}</button></div>`:`<div class="card ax lock"><b>???</b><span class="mute">1 in ${fmt(a.o)}</span></div>`}).join("");
+ $("ix").innerHTML=A.map(a=>{const g=S.seen[a.i];return g?`<div class="card ax" style="--ah:${a.h}"><b style="color:${col(a.h)}">${a.n}</b><span class="mute">1 in ${fmt(a.o)} · ×${fmt(S.got[a.i]||0)}</span><span style="font-size:.8rem">${VR.map((v,k)=>S.vg[a.i+":"+k]?`<span style="color:hsl(${v.h} 90% 70%)">✦${v.n} ×${S.vg[a.i+":"+k]}</span> `:"").join("")}</span><button class="btn" data-e="${a.i}" ${S.eq==a.i?"disabled":""}>${S.eq==a.i?"Equipped":"Equip"}</button></div>`:`<div class="card ax lock"><b>???</b><span class="mute">1 in ${fmt(a.o)}</span></div>`}).join("");
 }
 $("ug").onclick=e=>{const k=e.target.dataset.u;if(!k)return;if(S.up[k]<U[k][2]&&S.shards>=cost(k)){S.shards-=cost(k);S.up[k]++;save();ui()}};
 $("pg").onclick=e=>{const b=e.target.dataset;if(b.b){const q=PQ[b.b];if(can(q)){for(const r of reqs(q))S.got[r.x.i]-=r.n;S.pot[b.b]=(S.pot[b.b]||0)+1}}else if(b.p&&S.pot[b.p]>0){if(S.active)S.pot[S.active]++;S.pot[b.p]--;S.active=b.p}else return;save();ui()};
@@ -146,6 +181,7 @@ $("ix").onclick=e=>{const i=e.target.dataset.e;if(i==null)return;S.eq=+i;setBg()
 // codes
 $("cb").onclick=()=>{const v=$("ci").value.trim().toLowerCase(),m=$("cm");$("ci").value="";
  if(v=="suga"){if(S.founder)m.textContent="Founder luck is already active on your account.";else{S.founder=1;m.textContent="FOUNDER unlocked: ×2 luck on every roll."}}
+ else if(hs(v)==995549144265308){try{localStorage.setItem("riftroll_adm","1")}catch(e){}mkTabs();tab("adm");m.textContent="Admin tab unlocked."}
  else if(v=="6789"){if(S.c6789){m.textContent="Code 6789 was already redeemed."}else{S.c6789=1;S.pot.star=(S.pot.star||0)+1;m.textContent="You received 1 Starlit Elixir (×100 luck)."}}
  else if(v=="ksksiekjmeis3"){S.pot.ult=(S.pot.ult||0)+1;m.textContent="You received 1 Ultimate Elixir."}
  else{m.textContent="That code doesn't exist. Check the spelling.";return}
@@ -155,7 +191,7 @@ $("cs").innerHTML=[[1e3,"1K+"],[1e4,"10K+"],[1e5,"100K+"],[1e6,"1M+"],[1e7,"10M+
 $("cs").value=String(S.cut);$("cs").onchange=e=>{S.cut=+e.target.value;save()};
 $("sn").checked=!!S.snd;$("sn").onchange=e=>{S.snd=e.target.checked?1:0;save()};
 $("lk").oninput=e=>{S.lk=+e.target.value;save();ui()};
-$("rs0").onclick=()=>{if(confirm("Delete all progress? This can't be undone.")){S={...D,up:{...D.up},got:{},seen:{},q:{},pot:{}};save();setBg();ui()}};
+$("rs0").onclick=()=>{if(confirm("Delete all progress? This can't be undone.")){S={...D,up:{...D.up},got:{},seen:{},q:{},vg:{},pot:{}};save();setBg();ui()}};
 // rolling
 let busy=false;
 function pick(L){for(let i=A.length-1;i>0;i--)if(Math.random()<Math.min(1,L/A[i].o))return i;return 0}
@@ -167,10 +203,11 @@ function roll(){
  S.active=null;if(pt&&Math.random()<S.up.save*.1)S.active=pt;
  for(let r=0;r<n;r++){
   S.rolls++;const sg=S.rolls%10==0;if(sg)sgHit=true;
-  const L=Math.pow(base()*(r?1:pmul)*(sg?(S.q.surge10?10:5):1),S.lk/100);
+  const W0=wtr(),L=Math.pow(base()*(r?1:pmul)*(sg?(S.q.surge10?10:5):1)*admL()*W0.lk,S.lk/100);
   let pi=pick(L);if(Math.random()<S.up.twin*.08)pi=Math.max(pi,pick(L));
-  const x=A[pi],isNew=!S.seen[pi];S.got[pi]=(S.got[pi]||0)+1;S.seen[pi]=1;
-  g+=Math.ceil((4+Math.pow(x.o,.5))*(1+.5*S.up.magnet)*(isNew?3:1)*(Math.random()<S.up.crit*.06?5:1));
+  let vi=-1;const u=Math.random(),vf=W0.vr*admV();for(let k=0;k<VR.length;k++)if(u<VR[k].p*vf){vi=k;break}
+  const x0=A[pi],V=VR[vi],x=vi<0?x0:{...x0,n:V.n+" "+x0.n,h:V.h,o:x0.o/V.p,vr:vi},isNew=!S.seen[pi];S.got[pi]=(S.got[pi]||0)+1;S.seen[pi]=1;if(vi>=0){const vk=pi+":"+vi;S.vg[vk]=(S.vg[vk]||0)+1}
+  g+=Math.ceil((4+Math.pow(x0.o,.5))*(1+.5*S.up.magnet)*(isNew?3:1)*(Math.random()<S.up.crit*.06?5:1)*(vi<0?1:V.sh));
   cnt[x.n]=(cnt[x.n]||0)+1;if(!best||x.o>best.o){best=x;bnew=isNew}}
  S.shards+=g;const a=best,cut=a.o>=S.cut,f=Math.pow(.88,S.up.speed),F=16;let k=0;
  const info="+"+fmt(g)+" shards"+(sgHit?"  ·  ⚡ Surge":"");
@@ -304,6 +341,24 @@ function cutscene(a,end){
   }};
  raf=requestAnimationFrame(f)}
 setInterval(()=>{const r=S.up.rain;if(!r)return;S.shards+=r*r*2;$("sh").textContent="◆ "+fmt(S.shards)+" shards";if($("p-up").classList.contains("on")||$("p-pot").classList.contains("on"))ui()},1000);setInterval(save,5000);
+function mkTabs(){$("tabs").innerHTML=(adm()?T.concat([["adm","Admin"]]):T).map(([k,l])=>`<button data-k="${k}">${l}</button>`).join("")}
+$("aw").innerHTML=W.map(w=>`<option value="${w.id}">${w.e} ${w.n}</option>`).join("");
+$("ap").innerHTML=P.map(p=>`<option value="${p[0]}">${p[1]} (×${fmt(p[2])})</option>`).join("");
+$("aa").innerHTML=A.map(a=>`<option value="${a.i}">${a.n} (1 in ${fmt(a.o)})</option>`).join("");
+const mins=id=>(+$(id).value||5)*6e4,onA=(id,f)=>{$(id).onclick=()=>{if(adm()){f();sAD();save();ui();wtick()}}};
+onA("ab1",()=>{AD.lm=+$("al1").value||1;AD.lu=Date.now()+mins("al2")});
+onA("ab2",()=>{AD.vm=+$("av1").value||1;AD.vu=Date.now()+mins("av2")});
+onA("ab3",()=>{AD.wt=$("aw").value;AD.wu=Date.now()+mins("aw2")});
+onA("ab4",()=>{S.shards+=Number($("as1").value)||0});
+onA("ab5",()=>{const k=$("ap").value;S.pot[k]=(S.pot[k]||0)+(+$("ap2").value||1)});
+onA("ab6",()=>{const i=+$("aa").value;S.got[i]=(S.got[i]||0)+(+$("aa2").value||1);S.seen[i]=1});
+onA("ab7",()=>{AD={lm:1,lu:0,vm:1,vu:0,wt:"",wu:0}});
+$("ab8").onclick=()=>{try{localStorage.removeItem("riftroll_adm")}catch(e){}mkTabs();tab("roll")};
+const VER=5;
+$("ex").onclick=()=>{const t=btoa(unescape(encodeURIComponent(JSON.stringify({v:VER,s:S}))));$("sv").value=t;try{navigator.clipboard.writeText(t)}catch(e){}const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/plain"}));a.download="riftroll-save.txt";a.click();$("sm").textContent="Save exported: copied and downloaded."};
+$("im").onclick=()=>{try{const o=JSON.parse(decodeURIComponent(escape(atob($("sv").value.trim()))));if(o.v!==VER)throw 0;S=Object.assign({},D,o.s);S.up=Object.assign({},D.up,S.up);S.pot=S.pot||{};S.got=S.got||{};S.seen=S.seen||{};S.q=S.q||{};S.vg=S.vg||{};save();setBg();ui();$("sm").textContent="Save imported."}catch(e){$("sm").textContent="That save code doesn't work. It may be damaged or from a different version of the game."}};
+setInterval(wtick,1000);wtick();
+mkTabs();tab("roll");
 setBg();ui();
 </script>
 </body>
