@@ -60,7 +60,7 @@ input,select{font:inherit;background:#0d0b1c;color:var(--ink);border:1px solid v
 #cnt{position:absolute;left:0;right:0;bottom:12%;text-align:center;font:800 2rem Unbounded,sans-serif;display:none;pointer-events:none}
 #cut{overflow:hidden}
 #hnt{position:absolute;left:0;right:0;bottom:5%;text-align:center;font:600 1.3rem Unbounded,sans-serif;letter-spacing:.3em;display:none;pointer-events:none}
-#skip{position:absolute;right:18px;bottom:18px;display:none;background:#ffffff18;border:1px solid #ffffff40;border-radius:99px;padding:6px 16px}
+#skip{position:fixed;z-index:60;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));display:none;background:#ffffff18;border:1px solid #ffffff40;border-radius:99px;padding:6px 16px}
 @media(prefers-reduced-motion:reduce){#bg,#bg::after,#rb::before{animation:none}}
 </style>
 </head>
@@ -70,14 +70,14 @@ input,select{font:inherit;background:#0d0b1c;color:var(--ink);border:1px solid v
 <nav id="tabs"></nav>
 <main>
 <section id="p-roll" class="panel on">
- <div class="card stage"><div id="eqn" class="mute"></div><div id="reel">Ready</div><div id="odds"></div><div id="gain" class="mute"></div></div>
+ <div class="card stage"><div id="eqn" class="mute"></div><div id="reel">Ready</div><div id="odds"></div><div id="gain" class="mute"></div><div id="sum" class="mute" style="margin-top:6px;font-size:.9rem"></div></div>
  <button id="rb">ROLL</button><div id="nx"></div>
  <div class="card" style="max-width:460px;margin:14px auto 0"><label class="mute" for="lk">Luck dial: <b id="dv" style="color:var(--ink)"></b></label><input type="range" id="lk" min="0" max="100" style="width:100%;accent-color:var(--v)"><div class="mute" style="font-size:.85rem">Turn it down to roll the common auras.</div></div>
  <label id="al" class="mute" hidden><input type="checkbox" id="auto"> Auto roll</label>
  <div class="stats" id="stats"></div>
 </section>
-<section id="p-up" class="panel"><div class="grid" id="ug"></div></section>
-<section id="p-pot" class="panel"><div class="grid" id="pg"></div></section>
+<section id="p-up" class="panel"><div class="grid" id="ug"></div><h3 style="margin:22px 0 4px">Quests</h3><p class="mute" style="margin-bottom:10px">Quests spend your auras. The Index keeps them, but their count goes down.</p><div class="grid" id="uq"></div></section>
+<section id="p-pot" class="panel"><p class="mute" style="margin-bottom:10px">Potions can't be bought. Craft them by spending auras.</p><div class="grid" id="pg"></div></section>
 <section id="p-idx" class="panel"><p class="mute" id="ic" style="margin-bottom:12px"></p><div class="grid" id="ix" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr))"></div></section>
 <section id="p-code" class="panel">
  <div class="card"><h3>Redeem a code</h3><p class="mute">Enter a code to claim its reward.</p><p style="margin-top:10px"><input id="ci" placeholder="Code" autocomplete="off"> <button class="btn" id="cb">Redeem</button></p><p id="cm" style="margin-top:8px"></p></div>
@@ -87,26 +87,38 @@ input,select{font:inherit;background:#0d0b1c;color:var(--ink);border:1px solid v
 <div id="cut"><canvas id="cv"></canvas>
  <div id="cnt"></div><div id="hnt"></div>
  <div id="rev"><div id="rn"></div><div id="ro"></div><div id="rs" class="mute"></div><button class="btn" id="ok">Continue</button></div>
- <button id="skip">Skip</button></div>
+</div>
+<button id="skip">Skip</button>
 <script>
 const $=id=>document.getElementById(id),RM=matchMedia("(prefers-reduced-motion:reduce)").matches;
-const N="Plain,Dust,Pebble,Mist,Ember,Frost,Moss,Breeze,Flicker,Glow,Spark,Tide,Sunset,Dawn,Twilight,Copper,Jade,Amber,Quartz,Opal,Ripple,Cinder,Gale,Lumen,Haze,Sapphire,Crimson,Verdant,Aurora,Echo,Prism,Nimbus,Solstice,Vortex,Mirage,Onyx,Tempest,Zephyr,Wraith,Lotus,Phoenix,Glacier,Eclipse,Thornveil,Starfall,Banshee,Cobalt,Inferno,Specter,Zenith,Nebula,Leviathan,Chimera,Valkyrie,Obsidian,Tsunami,Celestia,Dragonfire,Abyss,Seraph,Pulsar,Revenant,Hydra,Quasar,Voidwalker,Titan,Ragnarok,Astral,Oblivion,Genesis,Aether,Supernova,Cataclysm,Eternity,Paradox,Singularity,Armageddon,Chronos,Infinity,Omniscient,Riftborn,Event Horizon,Dreadnought,Primordial,Anomaly,Overlord,Apocalypse,Eden,Rift Walker,Cosmos,Worldbreaker,Divinity,Nirvana,Elysium,Big Bang,Omega,Alpha Prime,The Rift,Eternal Void,RiftHeart".split(",");
-const A=N.map((n,i)=>{let o=2*Math.pow(5e11,i/99);o=o<100?Math.round(o):Number(o.toPrecision(2));return{i,n,o,h:(i*137.5)%360}});
-for(let i=1;i<100;i++)if(A[i].o<=A[i-1].o)A[i].o=A[i-1].o+1;
+const N0="Plain,Dust,Pebble,Mist,Ember,Frost,Moss,Breeze,Flicker,Glow,Spark,Tide,Sunset,Dawn,Twilight,Copper,Jade,Amber,Quartz,Opal,Ripple,Cinder,Gale,Lumen,Haze,Sapphire,Crimson,Verdant,Aurora,Echo,Prism,Nimbus,Solstice,Vortex,Mirage,Onyx,Tempest,Zephyr,Wraith,Lotus,Phoenix,Glacier,Eclipse,Thornveil,Starfall,Banshee,Cobalt,Inferno,Specter,Zenith,Nebula,Leviathan,Chimera,Valkyrie,Obsidian,Tsunami,Celestia,Dragonfire,Abyss,Seraph,Pulsar,Revenant,Hydra,Quasar,Voidwalker,Titan,Ragnarok,Astral,Oblivion,Genesis,Aether,Supernova,Cataclysm,Eternity,Paradox,Singularity,Armageddon,Chronos,Infinity,Omniscient,Riftborn,Event Horizon,Dreadnought,Primordial,Anomaly,Overlord,Apocalypse,Eden,Rift Walker,Cosmos,Worldbreaker,Divinity,Nirvana,Elysium,Big Bang,Omega,Alpha Prime,The Rift,Eternal Void,RiftHeart".split(",");
+const N1="Static,Pollen,Cobweb,Ash,Drizzle,Clay,Reed,Lantern,Wisp,Shimmer,Candle,Brook,Dusk,Lava Drop,Chime,Rust,Willow,Honey,Granite,Pearl,Rainfall,Magma,Whisper,Beacon,Smoke,Topaz,Ruby,Fern,Borealis,Resonance,Kaleido,Cumulus,Equinox,Cyclone,Illusion,Jet,Monsoon,Sylph,Phantom,Orchid,Firebird,Iceberg,Umbra,Bramble,Meteor,Siren,Azure,Volcano,Ghoul,Apex,Galaxy,Kraken,Griffon,Sentinel,Magma Heart,Typhoon,Empyrean,Wyvern,Chasm,Archangel,Neutron,Phantasm,Basilisk,Blazar,Netherwalker,Colossus,Valhalla,Cosmic,Perdition,Origin,Ether,Hypernova,Calamity,Immortality,Enigma,Tesseract,Ragnar,Kronos,Boundless,Omnipotent,Voidborn,Horizon,Juggernaut,Ancestral,Aberration,Sovereign,Doomsday,Paradise,Rift Stalker,Universe,Realmbreaker,Godhood,Moksha,Avalon,Creation,Zeta,Omega Prime,The Void,Eternal Rift,RiftCrown".split(","),N=N0.flatMap((n,i)=>[n,N1[i]]);
+const A=N.map((n,i)=>{let o=2*Math.pow(5e11,i/(N.length-1));o=o<100?Math.round(o):Number(o.toPrecision(2));return{i,n,o,h:(i*137.5)%360}});
+for(let i=1;i<A.length;i++)if(A[i].o<=A[i-1].o)A[i].o=A[i-1].o+1;
 const fmt=n=>{for(const[v,s]of[[1e12,"T"],[1e9,"B"],[1e6,"M"],[1e3,"K"]])if(n>=v){const x=n/v;return(x>=100?Math.round(x):+x.toFixed(1))+s}return Math.round(n).toLocaleString()};
 const fl=n=>n>=1e3?fmt(n):+n.toFixed(2);
 const col=(h,l=68)=>`hsl(${h} 90% ${l}%)`;
 // potions: id, name, luck multiplier, shard price
 const P=[["lucky","Lucky Draught",5,500],["fort","Fortune Vial",25,1e4],["star","Starlit Elixir",100,2.5e5],["rift","Rift Tonic",500,1e7],["void","Void Nectar",2500,5e8],["ult","Ultimate Elixir",1e4,1e10]];
 // upgrades: name, description, max level, base cost, cost growth
-const U={speed:["Quick Roll","Rolls finish 12% faster per level.",10,30,1.8],luck:["Fortune","+15% luck per level.",40,60,1.6],magnet:["Shard Magnet","+50% shards from every aura per level.",25,50,1.7],twin:["Twin Roll","8% chance per level to roll twice and keep the rarer aura.",10,150,1.7],save:["Potion Saver","10% chance per level that your potion isn't used up.",8,400,1.9],rain:["Shard Rain","Earn shards every second, even while idle (level² × 2 per second).",15,100,1.65],crit:["Shard Crit","6% chance per level to earn ×5 shards from a roll.",10,200,1.7],auto:["Auto Roll","Rolls for you. One-time unlock.",1,300,1]};
-const KEY="riftroll_v2",D={shards:0,rolls:0,got:{},up:{speed:0,luck:0,magnet:0,twin:0,save:0,rain:0,crit:0,auto:0},pot:{},active:null,eq:0,founder:0,cut:1000,snd:1,lk:100};
+const U={speed:["Quick Roll","Rolls finish 12% faster per level.",10,30,1.8],luck:["Fortune","+15% luck per level.",40,60,1.6],magnet:["Shard Magnet","+50% shards from every aura per level.",25,50,1.7],twin:["Twin Roll","8% chance per level to roll twice and keep the rarer aura.",10,150,1.7],save:["Potion Saver","10% chance per level that your potion isn't used up.",8,400,1.9],rain:["Shard Rain","Earn shards every second, even while idle (level² × 2 per second).",15,100,1.65],crit:["Shard Crit","6% chance per level to earn ×5 shards from a roll.",10,200,1.7],multi:["Multi-Roll","Roll more auras with each press: ×2, ×3, ×5. The ×10 level is a quest.",3,2000,12.5],auto:["Auto Roll","Rolls for you. One-time unlock.",1,300,1]};
+const KEY="riftroll_v4",D={shards:0,rolls:0,got:{},seen:{},q:{},up:{speed:0,luck:0,magnet:0,twin:0,save:0,rain:0,crit:0,multi:0,auto:0},pot:{},active:null,eq:0,founder:0,cut:1000,snd:1,lk:100};
 let S;try{S=Object.assign({},D,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){S={...D}}
-S.up=Object.assign({},D.up,S.up);S.pot=S.pot||{};S.got=S.got||{};
+S.up=Object.assign({},D.up,S.up);S.pot=S.pot||{};S.got=S.got||{};S.seen=S.seen||{};S.q=S.q||{};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const cost=k=>Math.floor(U[k][3]*Math.pow(U[k][4],S.up[k]));
-const tot=()=>(1+S.up.luck*.15)*(S.founder?2:1)*(S.active?P.find(p=>p[0]==S.active)[2]:1);
+const base=()=>(1+S.up.luck*.15)*(S.founder?2:1);
+const tot=()=>base()*(S.active?P.find(p=>p[0]==S.active)[2]:1);
 const luck=()=>Math.pow(tot(),S.lk/100);
+// quests: spend auras (the Index keeps them, but the count goes down; your equipped aura keeps 1 copy)
+const near=o=>A.reduce((b,x)=>Math.abs(Math.log(x.o/o))<Math.abs(Math.log(b.o/o))?x:b);
+const avail=i=>(S.got[i]||0)-(S.eq==i&&(S.got[i]||0)>0?1:0);
+const reqs=q=>q.map(([o,n])=>{const x=near(o);return{x,n,h:avail(x.i)}});
+const can=q=>reqs(q).every(r=>r.h>=r.n);
+const rq=q=>reqs(q).map(r=>`<div class="mute" style="font-size:.9rem">${r.x.n} (1 in ${fmt(r.x.o)}): <b style="color:${r.h>=r.n?"#7dffb0":"var(--ink)"}">${Math.max(0,r.h)}/${r.n}</b></div>`).join("");
+const PQ={lucky:[[5,30],[50,10]],fort:[[50,40],[1e3,10]],star:[[1e3,10],[1e5,2]],rift:[[1e5,10],[3e6,1]],void:[[3e6,5],[3e8,1]],ult:[[5e8,1],[3e8,1],[1e7,10]]};
+const UQ=[["multi10","Multi-Roll ×10","Roll 10 auras with every press.",[[3e6,1],[5,100]],()=>S.up.multi>=3],["surge10","Surge Amplifier","Your Tenth Roll Surge becomes ×10 luck instead of ×5.",[[1e8,1],[1e4,20]],()=>S.up.luck>=3]];
+
 // tabs
 const T=[["roll","Roll"],["up","Upgrades"],["pot","Potions"],["idx","Index"],["code","Codes"]];
 $("tabs").innerHTML=T.map(([k,l])=>`<button data-k="${k}">${l}</button>`).join("");
@@ -118,20 +130,22 @@ function setBg(){const a=A[S.eq],s=document.documentElement.style;s.setProperty(
 function ui(){
  $("sh").textContent="◆ "+fmt(S.shards)+" shards";
  $("eqn").innerHTML=`Equipped: <b style="color:${col(A[S.eq].h)}">${A[S.eq].n}</b>`;
- $("stats").innerHTML=`<div>Rolls<b>${fmt(S.rolls)}</b></div><div>Luck<b>×${fl(luck())}</b></div><div>Auras<b>${Object.keys(S.got).length}/100</b></div>`;
- $("nx").textContent=S.active?"Next roll: ×"+fmt(P.find(p=>p[0]==S.active)[2])+" luck":"";
+ $("stats").innerHTML=`<div>Rolls<b>${fmt(S.rolls)}</b></div><div>Luck<b>×${fl(luck())}</b></div><div>Per press<b>×${nRolls()}</b></div><div>Auras<b>${Object.keys(S.seen).length}/${A.length}</b></div>`;
+ $("nx").textContent=(S.active?"Next roll: ×"+fmt(P.find(p=>p[0]==S.active)[2])+" luck  ·  ":"")+(S.rolls%10==9?"⚡ SURGE next roll! (×"+(S.q.surge10?10:5)+" luck)":"Surge in "+(10-S.rolls%10)+" rolls");
  $("al").hidden=!S.up.auto;$("lk").value=S.lk;$("dv").textContent="×"+fl(luck())+" of ×"+fl(tot());
  $("ug").innerHTML=Object.keys(U).map(k=>{const u=U[k],l=S.up[k],mx=l>=u[2];return`<div class="card"><h3>${u[0]}</h3><p class="mute">${u[1]}</p><p>Level ${l}/${u[2]}</p><button class="btn" data-u="${k}" ${mx||S.shards<cost(k)?"disabled":""}>${mx?(k=="auto"?"Owned":"Maxed"):"Buy · ◆ "+fmt(cost(k))}</button></div>`}).join("");
- $("pg").innerHTML=P.map(p=>`<div class="card"><h3>${p[1]}</h3><p class="mute">Next roll: ×${fmt(p[2])} luck</p><p>Owned: ${S.pot[p[0]]||0}${S.active==p[0]?" · active":""}</p><button class="btn" data-b="${p[0]}" ${S.shards<p[3]?"disabled":""}>Buy · ◆ ${fmt(p[3])}</button> <button class="btn alt" data-p="${p[0]}" ${(S.pot[p[0]]||0)<1?"disabled":""}>Use</button></div>`).join("");
- $("ic").textContent=`Discovered ${Object.keys(S.got).length} of 100 auras.`;
- $("ix").innerHTML=A.map(a=>{const g=S.got[a.i];return g?`<div class="card ax" style="--ah:${a.h}"><b style="color:${col(a.h)}">${a.n}</b><span class="mute">1 in ${fmt(a.o)} · ×${fmt(g)}</span><button class="btn" data-e="${a.i}" ${S.eq==a.i?"disabled":""}>${S.eq==a.i?"Equipped":"Equip"}</button></div>`:`<div class="card ax lock"><b>???</b><span class="mute">1 in ${fmt(a.o)}</span></div>`}).join("");
+ $("pg").innerHTML=P.map(p=>`<div class="card"><h3>${p[1]}</h3><p class="mute">Next roll: ×${fmt(p[2])} luck</p><p>Owned: ${S.pot[p[0]]||0}${S.active==p[0]?" · active":""}</p>${rq(PQ[p[0]])}<button class="btn" data-b="${p[0]}" ${can(PQ[p[0]])?"":"disabled"}>Craft (spend auras)</button> <button class="btn alt" data-p="${p[0]}" ${(S.pot[p[0]]||0)<1?"disabled":""}>Use</button></div>`).join("");
+ $("uq").innerHTML=UQ.filter(q=>S.q[q[0]]||q[4]()).map(q=>`<div class="card"><h3>${q[1]}</h3><p class="mute">${q[2]}</p>${S.q[q[0]]?"<p>✔ Completed</p>":rq(q[3])+`<button class="btn" data-q="${q[0]}" ${can(q[3])?"":"disabled"}>Complete quest</button>`}</div>`).join("")||'<p class="mute">More quests appear as you upgrade.</p>';
+ $("ic").textContent=`Discovered ${Object.keys(S.seen).length} of ${A.length} auras.`;
+ $("ix").innerHTML=A.map(a=>{const g=S.seen[a.i];return g?`<div class="card ax" style="--ah:${a.h}"><b style="color:${col(a.h)}">${a.n}</b><span class="mute">1 in ${fmt(a.o)} · ×${fmt(S.got[a.i]||0)}</span><button class="btn" data-e="${a.i}" ${S.eq==a.i?"disabled":""}>${S.eq==a.i?"Equipped":"Equip"}</button></div>`:`<div class="card ax lock"><b>???</b><span class="mute">1 in ${fmt(a.o)}</span></div>`}).join("");
 }
 $("ug").onclick=e=>{const k=e.target.dataset.u;if(!k)return;if(S.up[k]<U[k][2]&&S.shards>=cost(k)){S.shards-=cost(k);S.up[k]++;save();ui()}};
-$("pg").onclick=e=>{const b=e.target.dataset;if(b.b){const p=P.find(x=>x[0]==b.b);if(S.shards>=p[3]){S.shards-=p[3];S.pot[b.b]=(S.pot[b.b]||0)+1}}else if(b.p&&S.pot[b.p]>0){if(S.active)S.pot[S.active]++;S.pot[b.p]--;S.active=b.p}else return;save();ui()};
+$("pg").onclick=e=>{const b=e.target.dataset;if(b.b){const q=PQ[b.b];if(can(q)){for(const r of reqs(q))S.got[r.x.i]-=r.n;S.pot[b.b]=(S.pot[b.b]||0)+1}}else if(b.p&&S.pot[b.p]>0){if(S.active)S.pot[S.active]++;S.pot[b.p]--;S.active=b.p}else return;save();ui()};
+$("uq").onclick=e=>{const id=e.target.dataset.q;if(!id)return;const q=UQ.find(x=>x[0]==id);if(!S.q[id]&&can(q[3])){for(const r of reqs(q[3]))S.got[r.x.i]-=r.n;S.q[id]=1;save();ui()}};
 $("ix").onclick=e=>{const i=e.target.dataset.e;if(i==null)return;S.eq=+i;setBg();save();ui()};
 // codes
 $("cb").onclick=()=>{const v=$("ci").value.trim().toLowerCase(),m=$("cm");$("ci").value="";
- if(v=="isman"){if(S.founder)m.textContent="Founder luck is already active on your account.";else{S.founder=1;m.textContent="FOUNDER unlocked: ×2 luck on every roll."}}
+ if(v=="suga"){if(S.founder)m.textContent="Founder luck is already active on your account.";else{S.founder=1;m.textContent="FOUNDER unlocked: ×2 luck on every roll."}}
  else if(v=="6789"){if(S.c6789){m.textContent="Code 6789 was already redeemed."}else{S.c6789=1;S.pot.star=(S.pot.star||0)+1;m.textContent="You received 1 Starlit Elixir (×100 luck)."}}
  else if(v=="ksksiekjmeis3"){S.pot.ult=(S.pot.ult||0)+1;m.textContent="You received 1 Ultimate Elixir."}
  else{m.textContent="That code doesn't exist. Check the spelling.";return}
@@ -141,21 +155,31 @@ $("cs").innerHTML=[[1e3,"1K+"],[1e4,"10K+"],[1e5,"100K+"],[1e6,"1M+"],[1e7,"10M+
 $("cs").value=String(S.cut);$("cs").onchange=e=>{S.cut=+e.target.value;save()};
 $("sn").checked=!!S.snd;$("sn").onchange=e=>{S.snd=e.target.checked?1:0;save()};
 $("lk").oninput=e=>{S.lk=+e.target.value;save();ui()};
-$("rs0").onclick=()=>{if(confirm("Delete all progress? This can't be undone.")){S={...D,up:{...D.up},got:{},pot:{}};save();setBg();ui()}};
+$("rs0").onclick=()=>{if(confirm("Delete all progress? This can't be undone.")){S={...D,up:{...D.up},got:{},seen:{},q:{},pot:{}};save();setBg();ui()}};
 // rolling
 let busy=false;
-function pick(L){for(let i=99;i>0;i--)if(Math.random()<Math.min(1,L/A[i].o))return i;return 0}
+function pick(L){for(let i=A.length-1;i>0;i--)if(Math.random()<Math.min(1,L/A[i].o))return i;return 0}
 function show(r){$("reel").textContent=r.n;$("reel").style.color=col(r.h)}
+const nRolls=()=>S.q.multi10?10:[1,2,3,5][S.up.multi];
 function roll(){
- if(busy)return;busy=true;$("rb").disabled=true;$("odds").textContent="";$("gain").textContent="";
- let pi=pick(luck());if(Math.random()<S.up.twin*.08)pi=Math.max(pi,pick(luck()));const a=A[pi],pt=S.active;S.active=null;if(pt&&Math.random()<S.up.save*.1)S.active=pt;S.rolls++;S.got[a.i]=(S.got[a.i]||0)+1;
- const nw=S.got[a.i]==1,g=Math.ceil((4+Math.pow(a.o,.5))*(1+.5*S.up.magnet)*(nw?3:1)*(Math.random()<S.up.crit*.06?5:1));S.shards+=g;
- const cut=a.o>=S.cut,f=Math.pow(.88,S.up.speed),F=16;let k=0;
- const end=()=>{show(a);$("odds").textContent="1 in "+fmt(a.o)+(nw?"  ·  NEW":"");$("gain").textContent="+"+fmt(g)+" shards";busy=false;$("rb").disabled=false;ui();save();
-  if($("auto").checked&&S.up.auto)setTimeout(roll,450)};
+ if(busy)return;busy=true;$("rb").disabled=true;$("odds").textContent="";$("gain").textContent="";$("sum").textContent="";
+ const n=nRolls(),pt=S.active,pmul=pt?P.find(p=>p[0]==pt)[2]:1,cnt={};let best=null,bnew=false,g=0,sgHit=false;
+ S.active=null;if(pt&&Math.random()<S.up.save*.1)S.active=pt;
+ for(let r=0;r<n;r++){
+  S.rolls++;const sg=S.rolls%10==0;if(sg)sgHit=true;
+  const L=Math.pow(base()*(r?1:pmul)*(sg?(S.q.surge10?10:5):1),S.lk/100);
+  let pi=pick(L);if(Math.random()<S.up.twin*.08)pi=Math.max(pi,pick(L));
+  const x=A[pi],isNew=!S.seen[pi];S.got[pi]=(S.got[pi]||0)+1;S.seen[pi]=1;
+  g+=Math.ceil((4+Math.pow(x.o,.5))*(1+.5*S.up.magnet)*(isNew?3:1)*(Math.random()<S.up.crit*.06?5:1));
+  cnt[x.n]=(cnt[x.n]||0)+1;if(!best||x.o>best.o){best=x;bnew=isNew}}
+ S.shards+=g;const a=best,cut=a.o>=S.cut,f=Math.pow(.88,S.up.speed),F=16;let k=0;
+ const info="+"+fmt(g)+" shards"+(sgHit?"  ·  ⚡ Surge":"");
+ const end=()=>{show(a);$("odds").textContent="1 in "+fmt(a.o)+(bnew?"  ·  NEW":"");$("gain").textContent=info;
+  if(n>1)$("sum").textContent="All rolls: "+Object.entries(cnt).map(([k2,v])=>k2+(v>1?" ×"+v:"")).join(", ");
+  busy=false;$("rb").disabled=false;ui();save();if($("auto").checked&&S.up.auto)setTimeout(roll,450)};
  const step=()=>{
-  if(k<F){show(A[Math.random()*100|0]);k++;setTimeout(step,(40+k*k*.65)*f)}
-  else if(cut){$("reel").textContent="✦";$("reel").style.color="#fff";$("rs").textContent="+"+fmt(g)+" shards"+(nw?"  ·  NEW":"");setTimeout(()=>cutscene(a,end),350)}
+  if(k<F){show(A[Math.random()*A.length|0]);k++;setTimeout(step,(40+k*k*.65)*f)}
+  else if(cut){$("reel").textContent="✦";$("reel").style.color="#fff";$("rs").textContent=info+(bnew?"  ·  NEW":"");setTimeout(()=>cutscene(a,end),350)}
   else end()};
  step()}
 $("rb").onclick=roll;
@@ -170,12 +194,12 @@ function tick(k){const x=snd();if(!x)return;const o=x.createOscillator(),g=x.cre
 const TN=["Rare","Epic","Legendary","Mythic","Transcendent","Celestial","Impossible"];
 function cutscene(a,end){
  const box=$("cut"),cv=$("cv"),c=cv.getContext("2d"),rv=$("rev"),cn=$("cnt"),W=cv.width=innerWidth,H=cv.height=innerHeight,cx=W/2,cy=H/2,m=Math.min(W,H),M=Math.hypot(W,H)/2;
- const lg=Math.log10(a.o),tier=lg-2,TR=Math.max(0,Math.min(6,Math.floor((lg-3)*.7))),v=a.i%5,w=a.i%3,sty=a.i%8,bst=(a.i>>1)%4,EX=[2,3,1.5,2.5,2,1.7,3,2.2][a.i%8],GX=[1.4,2,1,1.7,1.4,1.2,2.2,1.5][a.i%8],dr=a.i%2?-1:1,sk=RM?0:1,R0=m*.3;
+ const lg=Math.log10(a.o),tier=lg-2,TR=Math.max(0,Math.min(6,Math.floor((lg-3)*.7))),v=a.i%5,w=a.i%3,sty=a.i%12,bst=(a.i>>1)%4,EX=[2,3,1.5,2.5,2,1.7,3,2.2][a.i%8],GX=[1.4,2,1,1.7,1.4,1.2,2.2,1.5][a.i%8],dr=a.i%2?-1:1,sk=RM?0:1,R0=m*.3;
  const Dur=Math.min(18,5+1.8*(lg-3))*(1+((a.i*7)%5-2)*.04)*(RM?.5:1),SP=[4,5,6,8,12][v],S2=[6,4,8,3,5][v],h2=(a.h+(a.i*47)%90-45+360)%360,RK=[1,.6,1.6,1,.8][v],SD=[0,6,4][w];
  const hc=(l,al=1,h=a.h)=>`hsl(${h} 90% ${l}%/${al})`;
  const st=Array.from({length:180+tier*60|0},()=>({a:Math.random()*6.283,r:Math.random(),s:.4+Math.random()*.6}));
  const ob=Array.from({length:12+tier*6|0},()=>({a:Math.random()*6.283,d:.4+Math.random()*1.2,s:(Math.random()<.5?-1:1)*(.6+Math.random())}));
- let ldg=0,pls=0,zm=0,t=0,ang=0,ph=0,pa=[],sw=[],rg=[],bo=[],fz=0,shk=0,rt=0,last=performance.now(),raf;
+ let fw=[],fs=[],ldg=0,pls=0,zm=0,t=0,ang=0,ph=0,pa=[],sw=[],rg=[],bo=[],fz=0,shk=0,rt=0,last=performance.now(),raf;
  const shake=s=>{box.style.transform=`translate(${(Math.random()-.5)*s*2}px,${(Math.random()-.5)*s*2}px) scale(${1.06+zm})`};
  const ring=(r,n)=>{c.beginPath();if(!n)c.arc(cx,cy,r,0,6.283);else for(let k=0;k<=n;k++){const q=k*6.283/n+ang*.2;c.lineTo(cx+Math.cos(q)*r,cy+Math.sin(q)*r)}c.stroke()};
  const star=(R,rot,n,color,blur,sc)=>{c.beginPath();for(let k=0;k<n*2;k++){const r=k%2?R*.36:R,q=rot+k*Math.PI/n;c.lineTo(cx+Math.cos(q)*r,cy+Math.sin(q)*r)}c.closePath();c.fillStyle=color;c.shadowColor=sc||color;c.shadowBlur=blur;c.fill();c.shadowBlur=0};
@@ -184,7 +208,7 @@ function cutscene(a,end){
  c.setTransform(1,0,0,1,0,0);c.fillStyle="#03020c";c.fillRect(0,0,W,H);
  const stopR=riser(Dur*.92),sT=setTimeout(()=>$("skip").style.display="block",1200);
  $("skip").onclick=()=>{t=Math.max(t,Dur);stopR()};
- $("ok").onclick=()=>{cancelAnimationFrame(raf);clearTimeout(sT);box.style.display="none";box.style.transform="none";end()};
+ $("ok").onclick=()=>{cancelAnimationFrame(raf);clearTimeout(sT);box.style.display="none";$("skip").style.display="none";box.style.transform="none";end()};
  const bh=Array.from({length:260+tier*40|0},()=>({a:Math.random()*6.283,r:.15+Math.random()*.85}));
  const glow=(x,y,r,l,al)=>{const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,hc(l,al));g.addColorStop(1,hc(l-20,0));c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,6.283);c.fill()};
  const dot=(x,y,r)=>{c.fillStyle="#fff";c.beginPath();c.arc(x,y,r,0,6.283);c.fill()};
@@ -212,7 +236,22 @@ function cutscene(a,end){
   glow(cx,cy,M*.15+M*.25*p,85,.5+.4*p)},
  /*7 data rain + lock-on*/(p,im,dt)=>{c.font="16px monospace";for(let k=0;k<Math.ceil(W/22);k++){const sd=(k*7919%101)/101,y=(t*(.2+1.5*p)*H*(.5+sd)+sd*H*3)%(H*1.4)-H*.2;
    for(let j=0;j<10;j++){c.fillStyle=hc(j?55:92,(1-j/10)*(.2+.7*p)*(1-im),k%5?a.h:h2);c.fillText(String.fromCharCode(12448+(k*13+j*7+(t*10|0))%90),k*22,y-j*18)}}
-  c.lineWidth=3;c.strokeStyle=hc(80,.8*(1-im));ring(M*.6*(1-p)+30,0);c.beginPath();c.moveTo(cx-60,cy);c.lineTo(cx+60,cy);c.moveTo(cx,cy-60);c.lineTo(cx,cy+60);c.stroke()}];
+  c.lineWidth=3;c.strokeStyle=hc(80,.8*(1-im));ring(M*.6*(1-p)+30,0);c.beginPath();c.moveTo(cx-60,cy);c.lineTo(cx+60,cy);c.moveTo(cx,cy-60);c.lineTo(cx,cy+60);c.stroke()},
+ /*8 rift portal*/(p,im,dt)=>{const rx=m*.01+m*.2*p,ry=m*.1+m*.3*p;glow(cx,cy,ry*1.6,55,.5*p);c.save();c.translate(cx,cy);c.rotate(Math.sin(t*.7)*.15*dr);
+  c.fillStyle="#000";c.beginPath();c.ellipse(0,0,rx,ry,0,0,6.283);c.fill();c.lineWidth=3+6*p;c.strokeStyle=hc(80,.95);c.shadowColor=hc(60);c.shadowBlur=30;c.stroke();c.shadowBlur=0;
+  c.strokeStyle=hc(70,.6,h2);c.lineWidth=2;for(let k=1;k<4;k++){c.beginPath();c.ellipse(0,0,rx*k/4,ry*k/4,t*dr*(k%2?1:-1),0,4.5);c.stroke()}
+  c.restore();c.fillStyle=hc(90);for(let k=0;k<6+p*30;k++){const q=Math.random()*6.283;c.fillRect(cx+Math.cos(q)*rx*1.05+Math.random()*10-5,cy+Math.sin(q)*ry*1.05+Math.random()*10-5,2,2+Math.random()*8)}},
+ /*9 eclipse*/(p,im,dt)=>{const r=m*.14,mx=cx+(1-Math.min(1,p/.92))*m*.7*dr;glow(cx,cy,r*(2+3*p),88,.55+.4*p);
+  c.save();c.translate(cx,cy);c.rotate(t*.1);c.fillStyle=hc(85,.2*p);for(let k=0;k<24;k++){c.rotate(.2618);const L=r*(2+3*p+Math.sin(t*3+k)*.5);c.beginPath();c.moveTo(r,0);c.lineTo(L,-4);c.lineTo(L,4);c.fill()}c.restore();
+  c.fillStyle=hc(92);c.beginPath();c.arc(cx,cy,r,0,6.283);c.fill();c.fillStyle="#020108";c.beginPath();c.arc(mx,cy,r*1.02,0,6.283);c.fill()},
+ /*10 heartbeat*/(p,im,dt)=>{const bp=.5+2.5*p,A0=m*(.05+.3*p);c.lineWidth=3;c.strokeStyle=hc(75,.9);c.shadowColor=hc(60);c.shadowBlur=18;c.beginPath();
+  for(let x=0;x<=W;x+=4){const u=((x/W)*2+t*bp*.3)%1;c.lineTo(x,cy-A0*Math.exp(-Math.pow((u-.5)*16,2))*Math.sin((u-.5)*60)*1.6)}c.stroke();c.shadowBlur=0;
+  glow(cx,cy,m*.1+m*.15*Math.abs(Math.sin(t*bp*2)),70,.4*p)},
+ /*11 fireworks*/(p,im,dt)=>{if(!im&&Math.random()<.04+.4*p*p)fw.push({x:W*(.15+Math.random()*.7),y:H,vy:-H*(.6+Math.random()*.4),ty:H*(.15+Math.random()*.4),h:Math.random()<.5?a.h:h2});
+  fw=fw.filter(o=>{o.y+=o.vy*dt;if(o.y<=o.ty){for(let k=0;k<30+p*40;k++){const q=Math.random()*6.283,v=(.1+Math.random())*m*(.4+.5*p);fs.push({x:o.x,y:o.y,vx:Math.cos(q)*v,vy:Math.sin(q)*v,l:1,h:o.h})}return false}c.fillStyle=hc(90);c.fillRect(o.x-1.5,o.y,3,14);return true});
+  fs=fs.filter(o=>{o.l-=dt*.8;o.vy+=120*dt;o.x+=o.vx*dt;o.y+=o.vy*dt;if(o.l<=0)return false;c.fillStyle=hc(70,o.l,o.h);c.fillRect(o.x-2,o.y-2,4,4);return true});
+  glow(cx,cy,m*.05+m*.1*p,80,.3+.5*p)}
+];
  const f=now=>{
   const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt*((TR>=2&&t/Dur>.8&&t/Dur<.9)?.5:1);raf=requestAnimationFrame(f);
   if(t<Dur){
@@ -247,7 +286,7 @@ function cutscene(a,end){
    }else SC[sty](p,im,dt);
    {const vg=c.createRadialGradient(cx,cy,M*.45,cx,cy,M);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,`rgba(0,0,0,${.35+.3*p})`);c.fillStyle=vg;c.fillRect(0,0,W,H);if(TR>=3){const bz=H*.09*Math.min(1,p*5);c.fillStyle="#000";c.fillRect(0,0,W,bz);c.fillRect(0,H-bz,W,bz)}}
   }else{
-   if(!ph){ph=1;fz=1;shk=26+tier*7;boom();cn.style.display="none";$("hnt").style.display="none";rv.className="r"+(a.i%7%4);rv.style.display="flex";setTimeout(()=>$("ok").style.opacity=1,1800);
+   if(!ph){ph=1;fz=1;shk=26+tier*7;boom();cn.style.display="none";$("hnt").style.display="none";$("skip").style.display="none";rv.className="r"+(a.i%7%4);rv.style.display="flex";setTimeout(()=>$("ok").style.opacity=1,1800);
     $("rn").textContent=a.n;$("rn").style.color=hc(68);$("ro").textContent=TN[TR]+"  ·  1 in "+fmt(a.o);
     for(let k=0;k<2+TR;k++)sw.push({r:-k*M*.18,h:k%2?h2:a.h});
     pa=Array.from({length:240+tier*80|0},()=>({x:cx,y:cy,a:Math.random()*6.283,v:(.1+Math.random())*m*(.9+tier*.2),h:a.h+Math.random()*60-30,l:.6+Math.random()*1.6,z:1+Math.random()*3}))}
